@@ -1,0 +1,29 @@
+import express from "express";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  getUserById,
+  login,
+  logout,
+} from "../controllers/UserController.js";
+import { verifyToken } from "../middleware/VerifyToken.js";
+
+const router = express.Router();
+
+// Endpoint buat ngambil refresh token
+router.get("/token", refreshToken);
+
+// Endpoint buat login & logout
+router.post("/login", login);
+router.delete("/logout", logout);
+
+// Endpoint CRUD users
+router.get("/users", getUsers);
+router.get("/users/:id", verifyToken, getUserById);
+router.post("/users", verifyToken, createUser);
+router.put("/users/:id", verifyToken, updateUser);
+router.delete("/users/:id", verifyToken, deleteUser);
+
+export default router;
