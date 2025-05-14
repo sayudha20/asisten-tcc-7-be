@@ -44,7 +44,7 @@ async function getUserById(req, res) {
     return res.status(200).json({
       status: "Success",
       message: "User Retrieved",
-      data: user, // Data user yg diambil
+      data: user, // <- Data user yg diambil
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
@@ -77,7 +77,7 @@ async function createUser(req, res) {
       INSERT INTO nama_tabel (name, email, gender, password)
       VALUES (name, email, gender, encryptPassword);
 
-      Setelah itu, simpan hasil query ke dalam variabel "newUsers"
+      Setelah itu, simpan hasil query ke dalam variabel "newUser"
       Hasil query berupa user baru yg telah berhasil dibuat
     */
     const newUser = await User.create({
@@ -160,13 +160,12 @@ async function updateUser(req, res) {
       error.statusCode = 400;
       throw error;
     }
+
     // Kalo berhasil, kirim respons sukses (200)
-    else {
-      return res.status(200).json({
-        status: "Success",
-        message: "User Updated",
-      });
-    }
+    return res.status(200).json({
+      status: "Success",
+      message: "User Updated",
+    });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
       status: "Error",
@@ -207,13 +206,12 @@ async function deleteUser(req, res) {
       error.statusCode = 400;
       throw error;
     }
+
     // Kalo berhasil, kirim respons sukses (200)
-    else {
-      return res.status(200).json({
-        status: "Success",
-        message: "User Deleted",
-      });
-    }
+    return res.status(200).json({
+      status: "Success",
+      message: "User Deleted",
+    });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
       status: "Error",
