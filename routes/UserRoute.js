@@ -9,11 +9,12 @@ import {
   logout,
 } from "../controllers/UserController.js";
 import { verifyToken } from "../middleware/VerifyToken.js";
+import { getAccessToken } from "../controllers/RefreshToken.js";
 
 const router = express.Router();
 
-// Endpoint buat ngambil refresh token
-router.get("/token", refreshToken);
+// Endpoint buat ngambil access token menggunakan refresh token
+router.get("/token", getAccessToken);
 
 // Endpoint buat login & logout
 router.post("/login", login);

@@ -1,7 +1,7 @@
 import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 
-export const refreshToken = async (req, res) => {
+export const getAccessToken = async (req, res) => {
   try {
     // Ambil refresh token, simpan ke dalam variabel
     const refreshToken = req.cookies.refreshToken;
@@ -25,7 +25,7 @@ export const refreshToken = async (req, res) => {
         process.env.REFRESH_TOKEN_SECRET,
         (err, decoded) => {
           if (err) return res.sendStatus(403);
-          console.log("sudah lewat 403 ke dua di controller");
+
           const userPlain = user.toJSON(); // Konversi ke object
           const { password: _, refresh_token: __, ...safeUserData } = userPlain;
           const accessToken = jwt.sign(
