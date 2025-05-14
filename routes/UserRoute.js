@@ -21,10 +21,13 @@ router.post("/login", login);
 router.delete("/logout", logout);
 
 // Endpoint CRUD users
-router.get("/users", getUsers);
-router.get("/users/:id", getUserById);
-router.post("/users", createUser);
-router.put("/users/:id", updateUser);
-router.delete("/users/:id", deleteUser);
+// Kita mau endpoint ini tu restricted,
+// alias user yg mau akses endpoint ini harus login dulu,
+// makanya kita kasih middleware fungsi verifyToken yg udah kita buat sebelumnya.
+router.get("/users", verifyToken, getUsers);
+router.get("/users/:id", verifyToken, getUserById);
+router.post("/users", verifyToken, createUser);
+router.put("/users/:id", verifyToken, updateUser);
+router.delete("/users/:id", verifyToken, deleteUser);
 
 export default router;
