@@ -54,7 +54,7 @@ export const getAccessToken = async (req, res) => {
           // Kirim respons sukses + kasih access token yg udah dibikin tadi
           return res.status(200).json({
             status: "Success",
-            message: "Login Berhasil",
+            message: "Berhasil mendapatkan access token.",
             accessToken, // <- Access token baru untuk client
           });
         }
