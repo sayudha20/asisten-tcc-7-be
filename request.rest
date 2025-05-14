@@ -1,11 +1,31 @@
+### LOGIN
+POST http://localhost:5000/login
+Content-Type: application/json
+
+{
+    "email": "tesss@tessss.com",
+    "password": "123456"
+}
+
+### LOGOUT (Ganti refresh_token dengan refresh token yg sesuai)
+DELETE http://localhost:5000/logout
+Cookie: refreshToken=refresh_token
+
+### GET ACCESS TOKEN (Ganti refresh_token dengan refresh token yg sesuai)
+GET http://localhost:5000/token
+Cookie: refreshToken=refresh_token
+
 ### GET ALL USERS
 GET http://localhost:5000/users
+Authorization: "Bearer access_token"
 
 ### GET USER BY ID
 GET http://localhost:5000/users/3
+Authorization: "Bearer access_token"
 
 ### POST USER
 POST http://localhost:5000/users 
+Authorization: "Bearer access_token"
 Content-Type: application/json
 
 {
@@ -17,6 +37,7 @@ Content-Type: application/json
 
 ### EDIT USER
 PUT http://localhost:5000/users/3
+Authorization: "Bearer access_token"
 Content-Type: application/json
 
 {
@@ -28,3 +49,4 @@ Content-Type: application/json
 
 ### DELETE USER
 DELETE http://localhost:5000/users/2
+Authorization: "Bearer access_token"
