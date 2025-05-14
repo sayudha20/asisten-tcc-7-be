@@ -237,9 +237,6 @@ async function login(req, res) {
       // Konversi data user dari JSON ke dalam bentuk object
       const userPlain = user.toJSON(); // Konversi ke object
 
-      // Ngecek isi dari userplain (tidak wajib ditulis, cuma buat ngecek saja)
-      console.log(userPlain);
-
       // Disini kita mau mengcopy isi dari variabel userPlain ke variabel baru namanya safeUserData
       // Tapi di sini kita gamau copy semuanya, kita gamau copy password sama refresh_token karena itu sensitif
       const { password: _, refresh_token: __, ...safeUserData } = userPlain;
@@ -330,10 +327,10 @@ async function logout(req, res) {
     // ngambil refresh token di cookie
     const refreshToken = req.cookies.refreshToken;
 
-    // Ngecek ada ga refresh tokennya, kalo ga ada kirim status code 204
+    // Ngecek ada ga refresh tokennya, kalo ga ada kirim status code 401
     if (!refreshToken) {
       const error = new Error("Refresh token tidak ada");
-      error.statusCode = 204;
+      error.statusCode = 401;
       throw error;
     }
 
@@ -342,10 +339,10 @@ async function logout(req, res) {
       where: { refresh_token: refreshToken },
     });
 
-    // Kalau user gaada, kirim status code 204
+    // Kalau user gaada, kirim status code 401
     if (!user.refresh_token) {
       const error = new Error("User tidak ditemukan");
-      error.statusCode = 204;
+      error.statusCode = 401;
       throw error;
     }
 
