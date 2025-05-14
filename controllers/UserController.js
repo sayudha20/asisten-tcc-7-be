@@ -147,9 +147,7 @@ async function login(req, res) {
 
     // Cek apakah email terdaftar
     const user = await User.findOne({
-      where: {
-        email: email,
-      },
+      where: { email: email },
     });
 
     // Kalo email ada (terdaftar)
@@ -174,27 +172,21 @@ async function login(req, res) {
         const accessToken = jwt.sign(
           safeUserData,
           process.env.ACCESS_TOKEN_SECRET,
-          {
-            expiresIn: "30s",
-          }
+          { expiresIn: "30s" }
         );
 
         // Refresh token expire selama 1 hari
         const refreshToken = jwt.sign(
           safeUserData,
           process.env.REFRESH_TOKEN_SECRET,
-          {
-            expiresIn: "1d",
-          }
+          { expiresIn: "1d" }
         );
 
         // Update tabel refresh token pada DB
         await User.update(
           { refresh_token: refreshToken },
           {
-            where: {
-              id: user.id,
-            },
+            where: { id: user.id },
           }
         );
 
@@ -208,7 +200,7 @@ async function login(req, res) {
 
         // Kirim respons berhasil (200)
         res.status(200).json({
-          status: "Succes",
+          status: "Success",
           message: "Login Berhasil",
           safeUserData,
           accessToken,
@@ -235,38 +227,54 @@ async function login(req, res) {
 
 // Fungsi logout
 async function logout(req, res) {
-  // mengecek refresh token sama gak sama di database
-  const refreshToken = req.cookies.refreshToken;
+  try {
+    // ngambil refresh token di cookie
+    const refreshToken = req.cookies.refreshToken;
 
-  // Kalo ga sama atau ga ada kirim status code 204
-  if (!refreshToken) return res.sendStatus(204);
-
-  // Kalau sama, cari user berdasarkan refresh token tadi
-  const user = await User.findOne({
-    where: {
-      refresh_token: refreshToken,
-    },
-  });
-
-  // Kalau user gaada, kirim status code 204
-  if (!user.refresh_token) return res.sendStatus(204);
-
-  // Kalau user ketemu, ambil user id
-  const userId = user.id;
-
-  // Hapus refresh token dari DB berdasarkan user id tadi
-  await User.update(
-    { refresh_token: null },
-    {
-      where: {
-        id: userId,
-      },
+    // Ngecek ada ga refresh tokennya, kalo ga ada kirim status code 204
+    if (!refreshToken) {
+      const error = new Error("Refresh token tidak ada");
+      error.statusCode = 204;
+      throw error;
     }
-  );
 
-  // Ngehapus cookies yg tersimpan
-  res.clearCookie("refreshToken");
-  return res.sendStatus(200);
+    // Kalau ada, cari user berdasarkan refresh token tadi
+    const user = await User.findOne({
+      where: { refresh_token: refreshToken },
+    });
+
+    // Kalau user gaada, kirim status code 204
+    if (!user.refresh_token) {
+      const error = new Error("User tidak ditemukan");
+      error.statusCode = 204;
+      throw error;
+    }
+
+    // Kalau user ketemu (ada), ambil user id
+    const userId = user.id;
+
+    // Hapus refresh token dari DB berdasarkan user id tadi
+    await User.update(
+      { refresh_token: null },
+      {
+        where: { id: userId },
+      }
+    );
+
+    // Ngehapus refresh token yg tersimpan di cookie
+    res.clearCookie("refreshToken");
+
+    // Kirim respons berhasil (200)
+    res.status(200).json({
+      status: "Success",
+      message: "Logout Berhasil",
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
 }
 
 export {
