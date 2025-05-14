@@ -2,7 +2,7 @@
 GET http://localhost:5000/users
 
 ### GET USER BY ID
-GET http://localhost:5000/users/1
+GET http://localhost:5000/users/3
 
 ### POST USER
 POST http://localhost:5000/users 
@@ -11,18 +11,20 @@ Content-Type: application/json
 {
     "name": "tes",
     "email": "tes@tes.com",
-    "gender": "Male"
+    "gender": "Male",
+    "password": "12345678"
 }
 
 ### EDIT USER
-PUT http://localhost:5000/users/14
+PUT http://localhost:5000/users/3
 Content-Type: application/json
 
 {
     "name": "tessss",
     "email": "tesss@tessss.com",
-    "gender": "Male"
+    "gender": "Male",
+    "password": "123456"
 }
 
 ### DELETE USER
-DELETE http://localhost:5000/users/891
+DELETE http://localhost:5000/users/2

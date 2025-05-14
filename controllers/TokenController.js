@@ -3,23 +3,29 @@ import jwt from "jsonwebtoken";
 
 export const getAccessToken = async (req, res) => {
   try {
-    // Ambil refresh token, simpan ke dalam variabel
+    // Ambil refresh token dari cookie, simpan ke dalam variabel "refreshToken"
     const refreshToken = req.cookies.refreshToken;
 
-    // Kalau refresh token gaada
-    if (!refreshToken) return res.sendStatus(401);
+    // Kalau refresh token gaada, kasih error (401)
+    if (!refreshToken) {
+      const error = new Error("Refresh token tidak ada");
+      error.statusCode = 401;
+      throw error;
+    }
 
-    // Cari user yg punya refresh token yg sama
+    // Cari user yg punya refresh token yg sama di db
     const user = await User.findOne({
-      where: {
-        refresh_token: refreshToken,
-      },
+      where: { refresh_token: refreshToken },
     });
 
-    // Kalo ga ketemu
-    if (!user.refresh_token) return res.sendStatus(403);
+    // Kalo user ga ketemu, kasih error (401)
+    if (!user.refresh_token) {
+      const error = new Error("Refresh token tidak ada");
+      error.statusCode = 401;
+      throw error;
+    }
     // Kalo ketemu
-    else
+    else {
       jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
@@ -31,14 +37,20 @@ export const getAccessToken = async (req, res) => {
           const accessToken = jwt.sign(
             safeUserData,
             process.env.ACCESS_TOKEN_SECRET,
-            {
-              expiresIn: "30s",
-            }
+            { expiresIn: "30s" }
           );
-          res.json({ accessToken });
+          return res.status(200).json({
+            status: "Success",
+            message: "Login Berhasil",
+            accessToken,
+          });
         }
       );
+    }
   } catch (error) {
-    console.log(error);
+    return res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
   }
 };
