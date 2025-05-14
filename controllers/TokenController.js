@@ -18,31 +18,44 @@ export const getAccessToken = async (req, res) => {
       where: { refresh_token: refreshToken },
     });
 
-    // Kalo user ga ketemu, kasih error (401)
+    // Kalo user gapunya refresh token, masuk ke catch,
+    // kasih message "Refresh token tidak ada" (401)
     if (!user.refresh_token) {
       const error = new Error("Refresh token tidak ada");
       error.statusCode = 401;
       throw error;
     }
-    // Kalo ketemu
+    // Kalo ketemu, verifikasi refresh token
     else {
       jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-        (err, decoded) => {
-          if (err) return res.sendStatus(403);
+        refreshToken, // <- refresh token yg mau diverifikasi
+        process.env.REFRESH_TOKEN_SECRET, // <- Secret key dari refresh token
+        (error, decoded) => {
+          // Jika ada error (access token tidak valid/kadaluarsa), kirim respons error
+          if (error) {
+            return res.status(403).json({
+              status: "Error",
+              message: "Refresh token tidak valid",
+            });
+          }
+          // Konversi data user ke bentuk object
+          const userPlain = user.toJSON();
 
-          const userPlain = user.toJSON(); // Konversi ke object
+          // Hapus data sensitif sebelum membuat token baru, dalam hal ini password sama refresh token dihapus
           const { password: _, refresh_token: __, ...safeUserData } = userPlain;
+
+          // Buat access token baru (expire selama 30 detik)
           const accessToken = jwt.sign(
             safeUserData,
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: "30s" }
           );
+
+          // Kirim respons sukses + kasih access token yg udah dibikin tadi
           return res.status(200).json({
             status: "Success",
             message: "Login Berhasil",
-            accessToken,
+            accessToken, // <- Access token baru untuk client
           });
         }
       );

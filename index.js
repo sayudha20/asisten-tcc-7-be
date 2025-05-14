@@ -1,13 +1,11 @@
 import express from "express";
 import cors from "cors";
 import UserRoute from "./routes/UserRoute.js";
-import dotenv from "dotenv";
+import "dotenv/config";
 import cookieParser from "cookie-parser";
 
 const app = express();
 app.set("view engine", "ejs");
-
-dotenv.config();
 
 app.use(cookieParser());
 app.use(cors());

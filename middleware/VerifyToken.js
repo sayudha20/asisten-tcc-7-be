@@ -1,15 +1,39 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
+  // Ambil bearer token dari headers "authorization"
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  let token;
 
-  // kalau tokennya gaada
-  if (token == null) return res.sendStatus(401);
+  // Kalau bearer token ada, ambil access token-nya
+  if (authHeader) token = authHeader.split(" ")[1];
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
-    if (error) return res.sendStatus(403);
-    req.email = decoded.email;
-    next();
-  });
+  // Kalau access token-nya gaada, kirim respons error (401)
+  if (!token) {
+    return res.status(401).json({
+      status: "Error",
+      message: "Token tidak ada",
+    });
+  }
+
+  // Verifikasi access token
+  jwt.verify(
+    token, // <- Token yang akan diverifikasi
+    process.env.ACCESS_TOKEN_SECRET, // <- Secret key dari environment variables
+    (error, decoded) => {
+      // Jika ada error (access token tidak valid/kadaluarsa), kirim respons error
+      if (error) {
+        return res.status(403).json({
+          status: "Error",
+          message: "Access token tidak valid",
+        });
+      }
+
+      // Jika verifikasi berhasil, simpan email dari payload token ke request
+      req.email = decoded.email;
+
+      // Lanjut ke controller berikutnya
+      next();
+    }
+  );
 };

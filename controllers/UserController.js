@@ -12,7 +12,7 @@ async function getUsers(req, res) {
     return res.status(200).json({
       status: "Success",
       message: "Users Retrieved",
-      data: users,
+      data: users, // <- Data seluruh user
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
@@ -44,7 +44,7 @@ async function getUserById(req, res) {
     return res.status(200).json({
       status: "Success",
       message: "User Retrieved",
-      data: user,
+      data: user, // Data user yg diambil
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
@@ -91,7 +91,7 @@ async function createUser(req, res) {
     return res.status(201).json({
       status: "Success",
       message: "User Registered",
-      data: newUser,
+      data: newUser, // <- Data user baru yg ditambahkan
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
@@ -225,18 +225,18 @@ async function deleteUser(req, res) {
 // Fungsi LOGIN
 async function login(req, res) {
   try {
-    // Login menggunakan email dan password
+    // Ambil email dan password dari request body,
+    // karena kita login pake email & password
     const { email, password } = req.body;
 
-    // Cek apakah email terdaftar
+    // Cek apakah email terdaftar di db
     const user = await User.findOne({
       where: { email: email },
     });
 
     // Kalo email ada (terdaftar)
     if (user) {
-      // Data User itu nanti bakalan dipake buat ngesign token
-      // Data user dari sequelize itu harus diubah dulu ke bentuk object
+      // Konversi data user dari JSON ke dalam bentuk object
       const userPlain = user.toJSON(); // Konversi ke object
 
       // Ngecek isi dari userplain (tidak wajib ditulis, cuma buat ngecek saja)
@@ -247,25 +247,25 @@ async function login(req, res) {
       const { password: _, refresh_token: __, ...safeUserData } = userPlain;
 
       // Ngecek apakah password sama kaya yg ada di DB
-      const decryptPassword = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await bcrypt.compare(password, user.password);
 
       // Kalau password benar, artinya berhasil login
-      if (decryptPassword) {
-        // Access token expire selama 30 detik
+      if (isPasswordValid) {
+        // Membuat access token dengan masa berlaku 30 detik
         const accessToken = jwt.sign(
-          safeUserData,
-          process.env.ACCESS_TOKEN_SECRET,
-          { expiresIn: "30s" }
+          safeUserData, // <- Payload yang akan disimpan di token
+          process.env.ACCESS_TOKEN_SECRET, // <- Secret key untuk verifikasi
+          { expiresIn: "30s" } // <- Masa berlaku token
         );
 
-        // Refresh token expire selama 1 hari
+        // Membuat refresh token dengan masa berlaku 1 hari
         const refreshToken = jwt.sign(
           safeUserData,
           process.env.REFRESH_TOKEN_SECRET,
           { expiresIn: "1d" }
         );
 
-        // Update tabel refresh token pada DB
+        // Update refresh token di database untuk user yang login
         await User.update(
           { refresh_token: refreshToken },
           {
@@ -275,27 +275,45 @@ async function login(req, res) {
 
         // Masukkin refresh token ke cookie
         res.cookie("refreshToken", refreshToken, {
-          httpOnly: false, // Ngatur cross-site scripting, untuk penggunaan asli aktifkan karena bisa nyegah serangan fetch data dari website "document.cookies"
-          sameSite: "none", // Ngatur domain yg request misal kalo strict cuman bisa akses ke link dari dan menuju domain yg sama, lax itu bisa dari domain lain tapi cuman bisa get
-          maxAge: 24 * 60 * 60 * 1000, // Ngatur lamanya token disimpan di cookie (dalam satuan ms)
-          secure: true, // Ini ngirim cookies cuman bisa dari https, kenapa? nyegah skema MITM di jaringan publik, tapi pas development di false in aja
+          // httpOnly:
+          // - `true`: Cookie tidak bisa diakses via JavaScript (document.cookie)
+          // - Mencegah serangan XSS (Cross-Site Scripting)
+          // - Untuk development bisa `false` agar bisa diakses via console
+          httpOnly: false, // <- Untuk keperluan PRODUCTION wajib true
+
+          // sameSite:
+          // - "strict": Cookie, hanya dikirim untuk request SAME SITE (domain yang sama)
+          // - "lax": Cookie dikirim untuk navigasi GET antar domain (default)
+          // - "none": Cookie dikirim untuk CROSS-SITE requests (butuh secure:true)
+          sameSite: "none", // <- Untuk API yang diakses dari domain berbeda
+
+          // maxAge:
+          // - Masa aktif cookie dalam milidetik (1 hari = 24x60x60x1000)
+          // - Setelah waktu ini, cookie akan otomatis dihapus browser
+          maxAge: 24 * 60 * 60 * 1000,
+
+          // secure:
+          // - `true`: Cookie hanya dikirim via HTTPS
+          // - Mencegah MITM (Man-in-the-Middle) attack
+          // - WAJIB `true` jika sameSite: "none"
+          secure: true,
         });
 
         // Kirim respons berhasil (200)
         return res.status(200).json({
           status: "Success",
           message: "Login Berhasil",
-          safeUserData,
+          data: safeUserData, // <- Data user tanpa informasi sensitif
           accessToken,
         });
       } else {
-        // Kalau password salah
-        const error = new Error("Paassword atau email salah");
+        // Kalau password salah, masuk ke catch, kasi message "Password atau email salah" (400)
+        const error = new Error("Password atau email salah");
         error.statusCode = 400;
         throw error;
       }
     } else {
-      // Kalau email salah
+      // Kalau email salah, masuk ke catch, kasi message "Password atau email salah" (400)
       const error = new Error("Paassword atau email salah");
       error.statusCode = 400;
       throw error;

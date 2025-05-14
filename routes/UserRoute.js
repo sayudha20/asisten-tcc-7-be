@@ -22,9 +22,9 @@ router.delete("/logout", logout);
 
 // Endpoint CRUD users
 router.get("/users", getUsers);
-router.get("/users/:id", verifyToken, getUserById);
-router.post("/users", verifyToken, createUser);
-router.put("/users/:id", verifyToken, updateUser);
-router.delete("/users/:id", verifyToken, deleteUser);
+router.get("/users/:id", getUserById);
+router.post("/users", createUser);
+router.put("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
 export default router;
