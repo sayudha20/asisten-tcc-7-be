@@ -3,7 +3,7 @@ import db from "../config/Database.js";
 
 // Membuat tabel "users"
 const User = db.define(
-  "tcc-7-user", // Nama Tabel
+  "user", // Nama Tabel
   {
     name: Sequelize.STRING,
     email: Sequelize.STRING,
